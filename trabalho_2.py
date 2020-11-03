@@ -10,9 +10,11 @@ def selected_value():
     values = t_view.item(selected, 'values') #selectiona os valores
     pid_input.insert(0, values[0]) # seleciona o primeiro item da tupla e coloca no input
 
-#def recover_pid():
-#    selected = pid_input.get()
- #   print(selected)
+def recover_pid(a):
+    #selected = pid_input.get()
+    selected = t_view.focus()
+    dic = t_view.item(selected)
+    return dic['values'][0]
       
 
 process_name = []
@@ -74,5 +76,7 @@ pid_input.grid(row=0, column=1)
 #Button
 button_pid = tk.Button(add_frame, text="Selecionar", command=selected_value)
 button_pid.grid(row=1, column=1)
+
+t_view.bind('<ButtonRelease-1>', recover_pid)
 
 janela.mainloop()
