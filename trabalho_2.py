@@ -1,6 +1,7 @@
 import psutil
 import tkinter as tk
 import tkinter.ttk as ttk
+import os, signal
 
 def selected_value():
     #Limpar campo
@@ -12,10 +13,21 @@ def selected_value():
 
 def recover_pid(a):
     #selected = pid_input.get()
+    global pid
     selected = t_view.focus()
     dic = t_view.item(selected)
+    pid = dic['values'][0]
     return dic['values'][0]
-      
+
+def kill_process():
+    #print(pid)
+    os.kill(pid, signal.SIGKILL)
+
+def suspend_process():
+    os.kill(pid, signal.SIGSTOP)
+
+def continue_process():
+    os.kill(pid, signal.SIGCONT)
 
 process_name = []
 process_id = []
@@ -74,8 +86,17 @@ pid_input = tk.Entry(add_frame)
 pid_input.grid(row=0, column=1)
 
 #Button
-button_pid = tk.Button(add_frame, text="Selecionar", command=selected_value)
-button_pid.grid(row=1, column=1)
+#button_pid = tk.Button(add_frame, text="Selecionar", command=selected_value)
+#button_pid.grid(row=1, column=1)
+
+button_kill = tk.Button(add_frame, text="Matar", command=kill_process)
+button_kill.grid(row=1, column=0)
+
+button_stop = tk.Button(add_frame, text="Parar", command=suspend_process)
+button_stop.grid(row=1, column=1)
+
+button_continue = tk.Button(add_frame, text="Continuar", command=continue_process)
+button_continue.grid(row=1, column=2)
 
 t_view.bind('<ButtonRelease-1>', recover_pid)
 
