@@ -2,15 +2,18 @@ import psutil
 import tkinter as tk
 import tkinter.ttk as ttk
 import os, signal
-import functools
+from time import sleep
+from operator import itemgetter
 
-def selected_value():
-    #Limpar campo
-    pid_input.delete(0,tk.END)
+process_name = []
+process_id = []
+process_status = []
+process_nice = []
+cpu_percent = []
+janela = tk.Tk()
+t_view = ttk.Treeview(janela, columns=('PID', 'Nome', 'Status', 'Prioridade', '%CPU'), show='headings', height=31)
+modo = 'PID'
 
-    selected = t_view.focus()
-    values = t_view.item(selected, 'values') #selectiona os valores
-    pid_input.insert(0, values[0]) # seleciona o primeiro item da tupla e coloca no input
 
 def recover_pid(a):
     #selected = pid_input.get()
@@ -19,6 +22,16 @@ def recover_pid(a):
     dic = t_view.item(selected)
     pid = dic['values'][0]
     return dic['values'][0]
+
+def selected_value():
+    #Limpar campo
+    pid_input.delete(0,tk.END)
+
+    selected = t_view.focus()
+    print(selected)
+    values = t_view.item(selected, 'values') #selectiona os valores
+    print(values)
+    pid_input.insert(0, values[0]) # seleciona o primeiro item da tupla e coloca no input
 
 def kill_process():
     #print(pid)
@@ -41,28 +54,40 @@ def change_core():
     print(n)
     os.system("taskset -pc " + str(n) + " " + str(pid))
 
-process_name = []
-process_id = []
-process_status = []
-process_nice = []
-cpu_percent = []
+def get_values():    
+    data_matrix = []
 
-processes = psutil.process_iter(['pid', 'nice', 'name', 'status', 'cpu_percent'])
+    processes = psutil.process_iter(['pid', 'nice', 'name', 'status', 'cpu_percent'])
 
 
-for proc in processes:                          #laço para colocar todas as informações em uma lista individual
-    process_id.append(proc.info['pid'])         
-    process_name.append(proc.info['name'])
-    process_nice.append(proc.info['nice'])      #prioridade do processo
-    process_status.append(proc.info['status'])
-    cpu_percent.append(proc.info['cpu_percent'])
+    for proc in processes:                          #laço para colocar todas as informações em uma lista individual
+        '''p_id.append(proc.info['pid'])         
+        p_name.append(proc.info['name'])
+        p_nice.append(proc.info['nice'])      #prioridade do processo
+        p_status.append(proc.info['status'])
+        cpu_perc.append(proc.info['cpu_percent'])'''
+        data_matrix.append([proc.info['pid'], proc.info['name'], proc.info['status'], proc.info['nice'], proc.info['cpu_percent']])
+    
+    return data_matrix
+
+def att_grid(data_att, mode="PID"):
+    for i in t_view.get_children():
+        t_view.delete(i)
+
+    for (p_id, p_name, p_status, p_nice, cpu_perc) in data_att:
+        t_view.insert('', tk.END, values=(p_id, p_name, p_status, p_nice, cpu_perc))
 
 
-janela = tk.Tk()
+
+
+dados = get_values()
+
+
+print(janela.winfo_screenheight())
 janela.title('Gerenciador de Processos')
 janela.geometry('1100x768+400+100')
 
-t_view = ttk.Treeview(janela, columns=('PID', 'Nome', 'Status', 'Prioridade', '%CPU'), show='headings', height=31)
+
 
 
 t_view.column('PID', minwidth=0, width=212)
@@ -77,9 +102,12 @@ t_view.heading('Status', text='Status')
 t_view.heading('Prioridade', text='Prioridade')
 t_view.heading('%CPU', text='% CPU')
 
-for i in range(len(process_id)):
+'''for i in range(len(process_id)):
     t_view.insert("", tk.END, values=(process_id[i], process_name[i], process_status[i], process_nice[i], cpu_percent[i]))
-
+    #t_view.update("", tk.END, values =(process_id, process_name, process_status, process_nice, cpu_percent))
+    #t_view.
+'''
+#t_view.insert('', tk.END, values=data_info)
 
 t_view.place(x=10, y=115)
 
@@ -88,17 +116,14 @@ add_frame.pack(pady=20)
 
 #Labels
 pid_label = tk.Label(add_frame, text="PID selecionado")
-pid_label.grid(row=0, column=0)
+pid_label.grid(row=0, column=1)
 
 temp_label = tk.Label(add_frame,text="")
 temp_label.grid(row=1,column=0)
 
-prior_label = tk.Label(add_frame, text="Prioridade:")
-prior_label.grid(row=3, column=0)
-
 #Inputs
 pid_input = tk.Entry(add_frame)
-pid_input.grid(row=0, column=1)
+pid_input.grid(row=0, column=2)
 
 prior_input = tk.Entry(add_frame)
 prior_input.grid(row=3, column=1)
@@ -106,18 +131,19 @@ prior_input.grid(row=3, column=1)
 newCore_input = tk.Entry(add_frame)
 newCore_input.grid(row=3, column=3)
 
+
 #Button
 #button_pid = tk.Button(add_frame, text="Selecionar", command=selected_value)
 #button_pid.grid(row=1, column=1)
 
 button_kill = tk.Button(add_frame, text="Matar", command=kill_process)
-button_kill.grid(row=1, column=0)
+button_kill.grid(row=1, column=1)
 
 button_stop = tk.Button(add_frame, text="Parar", command=suspend_process)
-button_stop.grid(row=1, column=1)
+button_stop.grid(row=1, column=2)
 
 button_continue = tk.Button(add_frame, text="Continuar", command=continue_process)
-button_continue.grid(row=1, column=2)
+button_continue.grid(row=1, column=3)
 
 button_priority = tk.Button(add_frame, text="Setar Prioridade", command=change_priority)
 button_priority.grid(row=3, column=2)
@@ -127,4 +153,15 @@ button_newcore.grid(row=3, column=4)
 
 t_view.bind('<ButtonRelease-1>', recover_pid)
 
-janela.mainloop()
+aux = 0
+while True:   
+    if aux == 599:
+        dados = get_values()
+        att_grid(dados, modo)
+        aux = 0
+    
+    janela.update()
+    
+    aux += 1
+
+    sleep(0.002)
