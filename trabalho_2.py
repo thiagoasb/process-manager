@@ -2,6 +2,7 @@ import psutil
 import tkinter as tk
 import tkinter.ttk as ttk
 import os, signal
+import functools
 
 def selected_value():
     #Limpar campo
@@ -28,6 +29,17 @@ def suspend_process():
 
 def continue_process():
     os.kill(pid, signal.SIGCONT)
+
+def change_priority():
+    n = int(prior_input.get())
+    print(n)
+    p = psutil.Process(pid)
+    p.nice(n)
+
+def change_core():
+    n = newCore_input.get()
+    print(n)
+    os.system("taskset -pc " + str(n) + " " + str(pid))
 
 process_name = []
 process_id = []
@@ -81,9 +93,18 @@ pid_label.grid(row=0, column=0)
 temp_label = tk.Label(add_frame,text="")
 temp_label.grid(row=1,column=0)
 
+prior_label = tk.Label(add_frame, text="Prioridade:")
+prior_label.grid(row=3, column=0)
+
 #Inputs
 pid_input = tk.Entry(add_frame)
 pid_input.grid(row=0, column=1)
+
+prior_input = tk.Entry(add_frame)
+prior_input.grid(row=3, column=1)
+
+newCore_input = tk.Entry(add_frame)
+newCore_input.grid(row=3, column=3)
 
 #Button
 #button_pid = tk.Button(add_frame, text="Selecionar", command=selected_value)
@@ -97,6 +118,12 @@ button_stop.grid(row=1, column=1)
 
 button_continue = tk.Button(add_frame, text="Continuar", command=continue_process)
 button_continue.grid(row=1, column=2)
+
+button_priority = tk.Button(add_frame, text="Setar Prioridade", command=change_priority)
+button_priority.grid(row=3, column=2)
+
+button_newcore = tk.Button(add_frame, text="Mudar core", command=change_core)
+button_newcore.grid(row=3, column=4)
 
 t_view.bind('<ButtonRelease-1>', recover_pid)
 
