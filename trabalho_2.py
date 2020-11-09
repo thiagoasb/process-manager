@@ -4,6 +4,8 @@ import tkinter.ttk as ttk
 import os, signal
 from time import sleep
 from operator import itemgetter
+from pprint import pprint as pp
+import getpass
 
 process_name = []
 process_id = []
@@ -13,7 +15,8 @@ cpu_percent = []
 janela = tk.Tk()
 t_view = ttk.Treeview(janela, columns=('PID', 'Nome', 'Status', 'Prioridade', '%CPU'), show='headings', height=31)
 modo = 'PID'
-
+filtroPID = 0
+flag = False
 
 def recover_pid(a):
     #selected = pid_input.get()
@@ -54,13 +57,31 @@ def change_core():
     print(n)
     os.system("taskset -pc " + str(n) + " " + str(pid))
 
+def mudar_flag():
+    #global flag
+    #global filtroPID = -1
+
+    filtroPID = int(pid_input.get())
+    print(filtroPID)
+
+    if (flag == False):
+        flag = True
+    else:
+        flag = False
+    
+
 def get_values():    
     data_matrix = []
 
     processes = psutil.process_iter(['pid', 'nice', 'name', 'status', 'cpu_percent'])
 
 
-    for proc in processes:                          #laço para colocar todas as informações em uma lista individual
+    for proc in processes:   #laço para colocar todas as informações em uma lista individual
+        if ((proc.info['pid'] == filtroPID) and (flag == True)):
+            print('ENTROU AQUI')
+            data_matrix = []
+            data_matrix.append([proc.info['pid'], proc.info['name'], proc.info['status'], proc.info['nice'], proc.info['cpu_percent']])
+            return data_matrix
         '''p_id.append(proc.info['pid'])         
         p_name.append(proc.info['name'])
         p_nice.append(proc.info['nice'])      #prioridade do processo
@@ -76,8 +97,6 @@ def att_grid(data_att, mode="PID"):
 
     for (p_id, p_name, p_status, p_nice, cpu_perc) in data_att:
         t_view.insert('', tk.END, values=(p_id, p_name, p_status, p_nice, cpu_perc))
-
-
 
 
 dados = get_values()
@@ -133,8 +152,8 @@ newCore_input.grid(row=3, column=3)
 
 
 #Button
-#button_pid = tk.Button(add_frame, text="Selecionar", command=selected_value)
-#button_pid.grid(row=1, column=1)
+button_pid = tk.Button(add_frame, text="Selecionar", command=mudar_flag)
+button_pid.grid(row=0, column=3)
 
 button_kill = tk.Button(add_frame, text="Matar", command=kill_process)
 button_kill.grid(row=1, column=1)
@@ -154,14 +173,16 @@ button_newcore.grid(row=3, column=4)
 t_view.bind('<ButtonRelease-1>', recover_pid)
 
 aux = 0
+#filter()
 while True:   
     if aux == 599:
         dados = get_values()
         att_grid(dados, modo)
         aux = 0
-    
+        #filter(None, dados)
     janela.update()
     
     aux += 1
 
     sleep(0.002)
+    
