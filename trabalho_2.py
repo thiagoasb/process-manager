@@ -15,8 +15,8 @@ cpu_percent = []
 janela = tk.Tk()
 t_view = ttk.Treeview(janela, columns=('PID', 'Nome', 'Status', 'Prioridade', '%CPU'), show='headings', height=31)
 modo = 'PID'
-filtroPID = 0
-flag = False
+filtroPID = -1
+
 
 def recover_pid(a):
     #selected = pid_input.get()
@@ -60,24 +60,26 @@ def change_core():
 def mudar_flag():
     #global flag
     #global filtroPID = -1
-
-    filtroPID = int(pid_input.get())
-    print(filtroPID)
-
-    if (flag == False):
+    if(pid_input.get() != ''):
+        filtroPID = int(pid_input.get())
+        print(filtroPID)
+    return filtroPID
+    '''if (flag == False):
         flag = True
     else:
         flag = False
-    
+    '''
 
 def get_values():    
+    #global flag
+    #flag = False
     data_matrix = []
 
     processes = psutil.process_iter(['pid', 'nice', 'name', 'status', 'cpu_percent'])
 
-
+    print(filtroPID)
     for proc in processes:   #laço para colocar todas as informações em uma lista individual
-        if ((proc.info['pid'] == filtroPID) and (flag == True)):
+        if ((proc.info['pid'] == filtroPID) and (pid_input.get() != -1)):
             print('ENTROU AQUI')
             data_matrix = []
             data_matrix.append([proc.info['pid'], proc.info['name'], proc.info['status'], proc.info['nice'], proc.info['cpu_percent']])
@@ -134,41 +136,41 @@ add_frame = tk.Frame(janela)
 add_frame.pack(pady=20)
 
 #Labels
-pid_label = tk.Label(add_frame, text="PID selecionado")
-pid_label.grid(row=0, column=1)
+#pid_label = tk.Label(add_frame, text="PID selecionado")
+#pid_label.grid(row=0, column=1)
 
-temp_label = tk.Label(add_frame,text="")
-temp_label.grid(row=1,column=0)
+temp_label = tk.Label(add_frame,text="          ")
+temp_label.grid(row=0,column=3)
 
 #Inputs
 pid_input = tk.Entry(add_frame)
-pid_input.grid(row=0, column=2)
+pid_input.grid(row=0, column=1)
 
 prior_input = tk.Entry(add_frame)
 prior_input.grid(row=3, column=1)
 
 newCore_input = tk.Entry(add_frame)
-newCore_input.grid(row=3, column=3)
+newCore_input.grid(row=1, column=1)
 
 
 #Button
-button_pid = tk.Button(add_frame, text="Selecionar", command=mudar_flag)
-button_pid.grid(row=0, column=3)
+button_pid = tk.Button(add_frame, text="Selecionar pelo PID", command=mudar_flag)
+button_pid.grid(row=0, column=2, sticky="ew")
 
 button_kill = tk.Button(add_frame, text="Matar", command=kill_process)
-button_kill.grid(row=1, column=1)
+button_kill.grid(row=3, column=4, sticky="ew")
 
 button_stop = tk.Button(add_frame, text="Parar", command=suspend_process)
-button_stop.grid(row=1, column=2)
+button_stop.grid(row=0, column=4, sticky="ew")
 
 button_continue = tk.Button(add_frame, text="Continuar", command=continue_process)
-button_continue.grid(row=1, column=3)
+button_continue.grid(row=1, column=4, sticky="ew")
 
 button_priority = tk.Button(add_frame, text="Setar Prioridade", command=change_priority)
-button_priority.grid(row=3, column=2)
+button_priority.grid(row=3, column=2, sticky="ew")
 
 button_newcore = tk.Button(add_frame, text="Mudar core", command=change_core)
-button_newcore.grid(row=3, column=4)
+button_newcore.grid(row=1, column=2, sticky="ew")
 
 t_view.bind('<ButtonRelease-1>', recover_pid)
 
